@@ -1,6 +1,6 @@
 # Proposal Template
 
-This is the template for proposals for Bachelor, Master, or other theses at the Chair of Machine Learning and Reasoning (Computer Science 6).
+This is the template for seminar reports at the Chair of Machine Learning and Reasoning (Computer Science 6).
 
 **README content:**
 
@@ -17,7 +17,7 @@ This is the template for proposals for Bachelor, Master, or other theses at the 
 - [TeX Live](https://tug.org/texlive/)
 - [Git LFS](https://git-lfs.com)
 
-Of course, you need a TeX installation. Additionally, if you use Git for version control, install Git LFS before you clone this repository to handle large binary files gracefully.
+Of course, you need a TeX installation. Additionally, if you use Git for version control, install Git LFS before you clone or push to this repository to handle large binary files gracefully.
 
 ## Compiling
 

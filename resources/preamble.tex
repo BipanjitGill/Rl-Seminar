@@ -163,13 +163,6 @@
 }
 \captionsetup*[lstlisting]{font=singlespacing}
 
-% SI units settings
-\robustify\bfseries
-\sisetup{list-final-separator=\text{, and }}
-
-% citation settings
-\newcommand{\creflastconjunction}{, and }
-
 % conditional listings
 \newcommand{\listreferences}{
   \emergencystretch=1em
@@ -180,3 +173,10 @@
     \listoftodos[List of TODOs]
   \fi
 }
+
+% SI units settings
+\robustify\bfseries
+\sisetup{list-final-separator=\text{, and }}
+
+% citation settings
+\newcommand{\creflastconjunction}{, and }
