@@ -1,0 +1,23 @@
+# local environment
+.vscode
+.DS_Store
+
+# latex related files
+*.aux
+*.auxlock
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.log
+*.lol
+*.lot
+*.md5
+*.tdo
+*.toc
+*.run.xml
+*.synctex.gz
+*.synctex(busy)
+*-SAVE-ERROR

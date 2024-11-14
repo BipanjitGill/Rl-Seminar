@@ -1,0 +1,182 @@
+% !TEX root = ../main.tex
+
+\documentclass[11pt, oneside]{article} % TODO add 'final' option once document is complete
+\usepackage[a4paper,
+            width=150mm,
+            top=35mm,
+            bottom=35mm,
+            marginparwidth=25mm,
+            headheight=5mm,
+            headsep=10mm,
+            footskip=15mm,
+            hcentering]{geometry}
+\usepackage[backend=biber, sorting=nyt, citestyle=numeric-comp, bibstyle=ieee, maxbibnames=999]{biblatex}
+\usepackage[ngerman, american]{babel}
+\usepackage{setspace}
+\usepackage{fancyhdr}
+\usepackage[pdfusetitle, hidelinks, pdfcreator={TeX}]{hyperref}
+\usepackage{mathtools}
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
+\usepackage{upgreek}
+\usepackage{algorithm}
+\usepackage[beginComment=, beginLComment=, endLComment=]{algpseudocodex}
+\usepackage{listings}
+\usepackage{mleftright}
+\usepackage{graphicx}
+\usepackage{csquotes}
+\usepackage{parskip}
+\usepackage{titlesec}
+\usepackage{color}
+\usepackage{lipsum}
+\usepackage{pgfplots}
+\usepackage{tikzpagenodes}
+\usepackage{bookmark}
+\usepackage{xurl}
+\usepackage{etoolbox}
+\usepackage{comment}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{emptypage}
+\usepackage{letltxmacro}
+\usepackage[all]{nowidow}
+\usepackage[final]{microtype}
+\usepackage[nottoc]{tocbibind}
+\usepackage[shortcuts]{extdash}
+\usepackage[detect-all]{siunitx}
+\usepackage[skip=5pt]{subcaption}
+\usepackage[obeyFinal]{todonotes}
+\usepackage[shortlabels]{enumitem}
+\usepackage[nodayofweek]{datetime}
+\usepackage[capitalize, nameinlink, noabbrev]{cleveref}
+\usepackage[format=hang, font={color=darkgray}, skip=5pt]{caption}
+\usepackage[style=alttree, acronym, symbols, nomain, nonumberlist, shortcuts=ac]{glossaries-extra}
+
+% custom macros
+\input{resources/macros}
+
+% graphics directory
+\graphicspath{{graphics/}}
+
+% bibtex references
+\addbibresource{resources/references.bib}
+
+% acronyms and glossary
+\setabbreviationstyle[acronym]{long-short}
+\loadglsentries{resources/acronyms.tex}
+
+% fonts
+\setmainfont{STIXTwoText}[
+  Extension=.ttf,
+  Path=./fonts/,
+  UprightFont={*-Regular},
+  BoldFont={*-Bold},
+  ItalicFont={*-Italic},
+  BoldItalicFont={*-BoldItalic}
+]
+\setmathfont{STIXTwoMath}[
+  Extension=.ttf,
+  Path=./fonts/
+]
+\setsansfont{NotoSans}[
+  Extension=.ttf,
+  Path=./fonts/,
+  UprightFont={*-Regular},
+  BoldFont={*-Bold},
+  ItalicFont={*-Italic},
+  BoldItalicFont={*-BoldItalic},
+  Scale=MatchLowercase
+]
+\setmonofont{NotoSansMono}[
+  Extension=.ttf,
+  Path=./fonts/,
+  UprightFont={*-Regular},
+  BoldFont={*-Bold},
+  Scale=MatchLowercase
+]
+
+% line spacing
+\onehalfspacing
+\setlist{nosep}
+
+% page layout
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[R]{\nouppercase{%
+  \if@mainmatter \thechapter\enskip \fi
+  \leftmark
+}}
+\fancyfoot[R]{\thepage}
+\fancypagestyle{title}{
+  \fancyhf{}
+  \fancyfoot[R]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% float placement
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+
+% todonotes layout
+\reversemarginpar
+\setuptodonotes{
+  size=\footnotesize,
+  backgroundcolor=white,
+  linecolor=gray,
+  bordercolor=gray,
+  tickmarkheight=5pt
+}
+\let\TODO\todo
+
+% pgfplot version specification
+\pgfplotsset{compat=1.18}
+
+% math parentheses spacing adjustments
+\mleftright
+
+% inline math line break prevention
+\binoppenalty=10000
+\relpenalty=10000
+
+% remap (, ), [, and ] to \left(, \right), \left[, and \right]
+\begingroup
+  \catcode`(\active \xdef({\left\string(}
+  \catcode`)\active \xdef){\right\string)}
+  \catcode`[\active \xdef[{\left\string[}
+  \catcode`]\active \xdef]{\right\string]}
+\endgroup
+\mathcode`(="8000 \mathcode`)="8000
+\mathcode`[="8000 \mathcode`]="8000
+
+% algorithm settings
+\algrenewcommand\alglinenumber[1]{\color{gray}\footnotesize #1\enspace}
+
+% listings settings
+\lstset{
+  basicstyle={\ttfamily\singlespacing},
+  frame=lines,
+  numbers=left,
+  numberstyle={\color{gray}\ttfamily\footnotesize},
+  xleftmargin=2em,
+  framexleftmargin=2em,
+  belowcaptionskip=-0.5em
+}
+\captionsetup*[lstlisting]{font=singlespacing}
+
+% SI units settings
+\robustify\bfseries
+\sisetup{list-final-separator=\text{, and }}
+
+% citation settings
+\newcommand{\creflastconjunction}{, and }
+
+% conditional listings
+\newcommand{\listreferences}{
+  \emergencystretch=1em
+  \printbibliography[title={List of References}, heading=bibintoc]
+}
+\newcommand{\listtodos}{
+  \ifnum\value{@todonotes@numberoftodonotes}>0
+    \listoftodos[List of TODOs]
+  \fi
+}

@@ -1,0 +1,39 @@
+% !TEX root = main.tex
+% !TEX program = lualatex
+% !BIB program = biber
+
+\input{resources/preamble}
+
+
+\title{
+  \texorpdfstring{\begin{normalsize} Master Thesis Proposal \end{normalsize} \\}{}
+  \textbf{Title of Your Thesis}
+}
+\author{Firstname Lastname}
+\date{\today} % TODO use \formatdate{dd}{mm}{yyyy} instead of \today
+
+
+\begin{document}
+
+  \maketitle
+  \thispagestyle{title}
+
+  \begin{tikzpicture}[remember picture, overlay, shift={(current page.north east)}]
+    \node[anchor=north east, inner sep=0mm, xshift=-5mm, yshift=-8mm]{
+        \includegraphics[height=32mm]{titlepage/rwth-logo}
+    };
+  \end{tikzpicture}
+
+  \input{sections/template-instructions}
+  \input{sections/introduction}
+  \input{sections/background}
+  \input{sections/approach}
+  \input{sections/evaluation}
+
+  \appendix
+  \include{sections/appendix}
+
+  \listreferences
+  \listtodos
+
+\end{document}
