@@ -5,4 +5,42 @@
 
 The problem or task being addressed by the paper, the "What". Mathematical formulation, if relevant.
 
-\lipsum[3]
+ First, we introduce the transformer architecture, followed by programming language for transformers and our solution.
+
+\subsection{Transformer Architecture}
+
+The Transformer [Vaswani et al., 2017] is simple neural network based solely on self-attention. The input is a sequence of tokens $w_1, w_2, \dots, w_n$, where $w_i \in V$ (discrete vocabulary). At input layer, the model maps tokens to a $d$-dimensional embedding, represented as $\mathbf{x}_0 \in \mathbb{R}^{n \times d}$, which is sum of learned token embedding and a position embedding. Each subsequent layer $i$ consists of a multi-head attention layer (MHA) followed by a multilayer perceptron layer (MLP):
+
+\[
+\mathbf{X}^{(i)} = \mathbf{X}^{(i-1)} + \text{MHA}^{(i)}\big(\mathbf{X}^{(i-1)}\big) + \text{MLP}^{(i)}\big(\mathbf{X}^{(i-1)} + \text{MHA}^{(i)}\big(\mathbf{X}^{(i-1)}\big)\big).
+\]
+
+Following Elhage et al. (2021), multi-head attention (with $H$ heads) can be expressed as:
+
+\[
+\text{MHA}(\mathbf{X}) = \mathbf{X} + \sum_{h=1}^{H} \text{softmax}\big(\mathbf{X} \mathbf{W}_h^Q (\mathbf{X} \mathbf{W}_h^K)^\top\big) \mathbf{X} \mathbf{W}_h^V \mathbf{W}_h^O,
+\]
+
+where $\mathbf{W}_h^Q, \mathbf{W}_h^K, \mathbf{W}_h^V \in \mathbb{R}^{d \times d_h}$ are the query, key, and value projection matrices, respectively, and $\mathbf{W}_h^O \in \mathbb{R}^{d_h \times d}$ projects the output back to the model dimension.
+The MLP layer operates independently at each position; in the standard Transformer, it is a two-layer feedforward network:
+
+\[
+\text{MLP}(\mathbf{x}) = \sigma(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2,
+\]
+
+where $\mathbf{W}_1 \in \mathbb{R}^{d \times d_m}$, $\mathbf{W}_2 \in \mathbb{R}^{d_m \times d}$, and $\sigma$ is a non-linear activation function, commonly the ReLU function. The output of the model is a sequence of token embeddings, $\mathbf{x}^L \in \mathbb{R}^{N \times d}$. The model is typically trained end-to-end on a prediction task by applying a linear classifier to the final-layer token embeddings.
+
+% /subsection{Transformer Circuits}
+
+% Transformer circuits [Elhage et al., 2021]  refer to the conceptual framework and methodologies used to understand the inner workings of transformer models. They provide a structured way to analyze how transformers process information at the level of attention heads, feedforward layers, and other architectural components. 
+
+\subsection{Programming Language for Transformers}
+Restricted Access Sequence Processing Language (RASP), introduced by Weiss et al. (2021), is a programming language designed to model the functionality of transformers. It consists of various functions, each corresponding to different components of a transformer model, effectively simulating their operations. It provides select-aggregate operation which corresponds to attention in transformers. The select operation takes two lists, representing keys, query pair and a boolean predicate, and computes a matrix describing for each key, query pair whether the condition $p(k,q)$ holds. The aggregate operation takes one selection matrix(similar to attention matrix) and one list(value), and averages for each row of the matrix the values of the list in its selected columns. Tracr [Lindner et al., 2023] is a compiler for RASP that converts it into different tranformer components.
+% TODO: give example
+
+\subsection{Mechanistic Interpretability}
+
+Mechanistic Interpretability  refers to the process of zooming into neural networks to understand the underlying components and mechanisms that drive their behaviors. In the context of transformers, mechanistic interpretability can help understand how the model processes information, how each head attends to different parts of the input, and how it generates output. But this task is difficult for transformers because in this case different attention heads take input from same residual stream and writes to same subspace in the reidual stream. This makes difficult to understand contribution of each head and information flow between different components. Also transformers have billions of parameters, making it difficult to pinpoint how individual parameters or components contribute to the model's behavior. Attention mechanisms assign soft weights to tokens, but interpreting these weights is not always straightforward. High attention scores do not always imply importance in the final prediction.
+
+\subsection{Our solution}
+To overcome these challenges, in this work the author define some constraints on the differnt components of the transformer model so that there is one to one mapping to RASP program. The author define the set of transformers satisfying these constraints as Transformer Programs. Each module in the model reads a fixed set of variable from the residual stream and writes into non-overlapping subspace in the residual stream. Also, the model contains only categorical attention, making it easy to interpret.

@@ -21,3 +21,6 @@
 *.synctex.gz
 *.synctex(busy)
 *-SAVE-ERROR
+
+
+referencepdf.pdf
