@@ -5,4 +5,31 @@
 
 Experimental results and analysis. Theoretical results, if any. Meaning of the results. Own experiments, if any.
 
-\lipsum[2]
+The authors validate their approach by conducting experiments on various tasks, demonstrating the effectiveness and interpretability of Transformer Programs.
+
+\subsection{In-Context Learning}
+
+The authors initially demonstrate the capabilities of Transformer Programs on a simple in-context learning task \cite{brown2020language}, in which the model takes a sequence of alternating letters and numbers ending with a letter. If the letter has appeared before, it outputs the corresponding number; if not, it outputs an "unk" token. Model contain only two layers, one attention head per layer. The final embedding include four variables: tokens, positions, and one output variable for each attention head. The model achieves perfect accuracy on test set. The residual streams and attention heads are illustrated in Figure. 
+% \ref{fig:residual_stream} and \ref{fig:attention_head}, respectively.
+The first attention head focuses on the position for both key and query. At each position, it looks at the key from the previous step and writes the token's value. The second attention head uses tokens as the query and the output from the first head as the key. If the query is a letter, it tries to match it with a key in the first head's output that has the same letter followed by a number.
+
+\subsection{RASP Tasks}
+
+These are algorithmic tasks were introduced by \citeauthor{weiss2021thinking}\cite{weiss2021thinking}. On five out of seven tasks, the learned programs achieve over 99\% accuracy as shown in Table 
+% \ref{tab:rasp_results}
+, demonstrating their effectiveness in handling diverse algorithmic problems. In general, standard Transformers outperform Transformer Programs, particularly on tasks with longer sequences and larger vocabularies as shown in the 
+% \ref{tab:rasp_results}
+. However, both models exhibit similar trends with performance degrading as task complexity increases. This suggests that while Transformer Programs show promise, further optimization is needed to match the performance of standard Transformers on more challenging tasks.
+
+\subsection{NLP Tasks: Named Entity Recognition and Text Classification}
+
+For the named entity task, the author tested the model on  CoNLL-2003 Named Entity Recognition task as described by \citeauthor{sang2003introduction}\cite{sang2003introduction}. In this dataset, each word is labelled as four entity type  (PER, ORG, LOC, MISC) or not a entity (O). The transformer is trained with only categorical attention heads. The results and comparison with a standard transformer and baseline are shown in Table 
+% \ref{tab:nlp_results}
+. The results indicates that the program successfully learned to use contextual information to predict entity tags and have comparable performance to a standard transformer. The analysis shows that the program utilized both word-level features and information copied from neighboring words (like prepositions) to make its predictions, demonstrating the interpretability advantage of this approach.
+
+The authors evaluated Transformer Programs on several text classification datasets, including classification of questions [TREC \cite{voorhees2000building}], sentiment analysis of movie reviews[MR \cite{pang2005seeing}], classification of sentences as objective or subjective [Subj \cite{pang2004sentimental}] and classification of sentences from news articles as one of four topics [AG News \cite{zhang2015character}]. The results 
+% \ref{tab:nlp_results}
+show that Transformer Programs achieved competitive accuracy compared to standard Transformers on most of these datasets. This suggests that the approach can effectively handle various text classification problems.
+
+Overall, the results for both NER and text classification tasks demonstrate the capability of Transformer Programs to learn effective and interpretable solutions for complex natural language processing problems. The comparable performance to standard Transformers, combined with the ability to understand the programs' decision-making logic, makes this approach a promising direction for building more transparent and trustworthy AI systems.
+
