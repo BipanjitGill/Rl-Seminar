@@ -3,33 +3,85 @@
 \section{Results}
 \label{ch:results}
 
-Experimental results and analysis. Theoretical results, if any. Meaning of the results. Own experiments, if any.
+% Experimental results and analysis. Theoretical results, if any. Meaning of the results. Own experiments, if any.
 
 The authors validate their approach by conducting experiments on various tasks, demonstrating the effectiveness and interpretability of Transformer Programs.
 
 \subsection{In-Context Learning}
-
-The authors initially demonstrate the capabilities of Transformer Programs on a simple in-context learning task \cite{brown2020language}, in which the model takes a sequence of alternating letters and numbers ending with a letter. If the letter has appeared before, it outputs the corresponding number; if not, it outputs an "unk" token. Model contain only two layers, one attention head per layer. The final embedding include four variables: tokens, positions, and one output variable for each attention head. The model achieves perfect accuracy on test set. The residual streams and attention heads are illustrated in Figure. 
-% \ref{fig:residual_stream} and \ref{fig:attention_head}, respectively.
+\label{subsec:incontext-results-analysis}
+The authors initially demonstrate the capabilities of Transformer Programs on a simple in-context learning task by \textcite{brown2020language}, in which the model takes a sequence of alternating letters and numbers ending with a letter. If the letter has appeared before, it outputs the corresponding number; if not, it outputs an "unk" token. Model contain only two layers, one attention head per layer. The final embedding include four variables: tokens, positions, and one output variable for each attention head. The model achieves perfect accuracy on test set. The residual streams and attention heads are illustrated in \cref{fig:incontext} and \cref{fig:incontext-attention}. 
 The first attention head focuses on the position for both key and query. At each position, it looks at the key from the previous step and writes the token's value. The second attention head uses tokens as the query and the output from the first head as the key. If the query is a letter, it tries to match it with a key in the first head's output that has the same letter followed by a number.
 
 \subsection{RASP Tasks}
 
-These are algorithmic tasks were introduced by \citeauthor{weiss2021thinking}\cite{weiss2021thinking}. On five out of seven tasks, the learned programs achieve over 99\% accuracy as shown in Table 
-% \ref{tab:rasp_results}
-, demonstrating their effectiveness in handling diverse algorithmic problems. In general, standard Transformers outperform Transformer Programs, particularly on tasks with longer sequences and larger vocabularies as shown in the 
-% \ref{tab:rasp_results}
-. However, both models exhibit similar trends with performance degrading as task complexity increases. This suggests that while Transformer Programs show promise, further optimization is needed to match the performance of standard Transformers on more challenging tasks.
+These are algorithmic tasks were introduced by \textcite{weiss2021thinking}. On five out of seven tasks, the learned programs achieve over 99\% accuracy as shown in Table \cref{tab:rasp-task-results}, demonstrating their effectiveness in handling diverse algorithmic problems. In general, standard Transformers outperform Transformer Programs, particularly on tasks with longer sequences and larger vocabularies as shown in the \cref{fig:comp-with-std}. Both models show a similar trend: their performance declines as task complexity increases. Notably, Transformer Programs experience a sharper performance drop compared to standard transformer. This suggests that while Transformer Programs show promise, further optimization is needed to match the performance of standard Transformers on more challenging tasks.
+
+\begin{table}[!ht]
+    \small
+    \centering
+    \label{tab:rasp-task-results}
+    \begin{tabularx}{\textwidth}{l  p{4cm}  l  c  c  c  c  S[table-format=2.2]}
+      \toprule
+      \textbf{Dataset} & \textbf{Description} & \textbf{Example}  & \textbf{k} & \textbf{L} & \textbf{H} & \textbf{M} & \textbf{Accu.}\\
+      \midrule
+      Reverse & Reverse a string. &  $reverse("abbc") = "cbba"$ & 8 & 2 & - & - & 99.79  \\
+      Histogram & For each token, the number of occurrences of that letter in the sequence. & $hist("abbc") = "1221"$ & 8 & 1 & 4 & 2 & 100.00 \\
+      Double hist. & For each token, the number of unique tokens with the same histogram value. & $hist2("abbc") = "2112"$ & 8 & 3 & 4 & 2 & 98.40 \\
+      Sort & Sort the input in lexicographical order. & $sort("cbab") = "abbc"$ & 8 & 3 & 8 & 4 & 99.83 \\
+      Most-Freq & The unique input tokens in order of frequency, using position to break ties. & $most\_freq("abbc") = "bac"$ & 8 & 3 & 8 & 4 & 75.69 \\
+      % Dyck-1 & For each position i, is the input up until i a valid string in Dyck-1 $(T)$; a valid prefix $(P)$; or invalid $(F)$. & $dyck1("()())")= "PTPTF"$ & 16 & 3 & 8 & 2 & 99.30 \\
+      % Dyck-2 & The same as above, but in Dyck-2. & $dyck2("({})(}") = "PPPTPF"$ & 16 & 3 & 4 & 4 & 99.09 \\
+      % \bottomrule
+    \end{tabularx}
+    \caption{These are the results of RASP tasks introduced by \textcite{weiss2021thinking} on the Transformer Programs. The variable cardinality $(k)$, number of layers $(L)$, attention heads $(H)$, and MLPs $(M)$ used in the best-performing model are also repoted.}
+  \end{table}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=1\textwidth]{Results/comp-with-std.png}
+    \caption{This is the comparison of Transformer Programs and standard Transformers on RASP tasks with varying size of vocabularies $(|V|)$ and maximum sequence length$(N)$.For most tasks, performance drops slightly when trained on longer sequences and even more when the vocabulary size is also increased. This trend is seen in both standard Transformers and Transformer Programs. However, Transformer Programs experience a much sharper decline, with accuracy dropping over 50\% compared to standard Transformers in the most challenging scenarios.}
+    \label{fig:comp-with-std}
+\end{figure}
+
 
 \subsection{NLP Tasks: Named Entity Recognition and Text Classification}
 
-For the named entity task, the author tested the model on  CoNLL-2003 Named Entity Recognition task as described by \citeauthor{sang2003introduction}\cite{sang2003introduction}. In this dataset, each word is labelled as four entity type  (PER, ORG, LOC, MISC) or not a entity (O). The transformer is trained with only categorical attention heads. The results and comparison with a standard transformer and baseline are shown in Table 
-% \ref{tab:nlp_results}
-. The results indicates that the program successfully learned to use contextual information to predict entity tags and have comparable performance to a standard transformer. The analysis shows that the program utilized both word-level features and information copied from neighboring words (like prepositions) to make its predictions, demonstrating the interpretability advantage of this approach.
+For the named entity task, the author tested the model on  CoNLL-2003 Named Entity Recognition task as described by \textcite{sang2003introduction}. In this dataset, each word is labelled as four entity type  (PER, ORG, LOC, MISC) or not a entity (O). The transformer is trained with only categorical attention heads. The results and comparison with a standard transformer and baseline are 
+\begin{table}[!ht]
+    \small
+    \centering
+    \label{tab:ner-results}
+    \begin{tabular}{l c c c S S S[table-format=2.1]}
+      \toprule
+      \textbf{Model} & \textbf{D} & \textbf{L}& \textbf{H}& \textit{Precision} & \textit{Recall} & \textit{F1} \\
+      \midrule
+      Unigram baseline & - & - & - & 82.8 & 55.1 & 66.2 \\
+      Standard Transformer & 128 & 3 & 4 & 80.4 & 62.7 & 70.5  \\
+      Transformer Programs & $32 X 4$ & 2 & 8 & 81.0 & 71.8 & 76.1 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Results and comparisons of baseline, Transformer Programs and standard Transformers on CoNLL-2003 Named Entity Recognition task. For each model, embedding dimension $(D)$, number of layers $(L)$, number of heads $(H)$ of the best-performing model,
+    and precision, recall and F1 are repoted. }
+  \end{table}
+shown in \cref{tab:ner-results} . The results indicates that the program successfully learned to use contextual information to predict entity tags and have comparable performance to a standard transformer. The analysis shows that the program utilized both word-level features and information copied from neighboring words (like prepositions) to make its predictions, demonstrating the interpretability advantage of this approach.
 
-The authors evaluated Transformer Programs on several text classification datasets, including classification of questions [TREC \cite{voorhees2000building}], sentiment analysis of movie reviews[MR \cite{pang2005seeing}], classification of sentences as objective or subjective [Subj \cite{pang2004sentimental}] and classification of sentences from news articles as one of four topics [AG News \cite{zhang2015character}]. The results 
-% \ref{tab:nlp_results}
-show that Transformer Programs achieved competitive accuracy compared to standard Transformers on most of these datasets. This suggests that the approach can effectively handle various text classification problems.
+The authors evaluated Transformer Programs on several text classification datasets, including classification of questions: TREC \cite{voorhees2000building}, sentiment analysis of movie reviews: MR \cite{pang2005seeing}, classification of sentences as objective or subjective: Subj \cite{pang2004sentimental} and classification of sentences from news articles as one of four topics: AG News \cite{zhang2015character}. The results 
+\begin{table}[!ht]
+    \small
+    \centering
+    \label{tab:tc-results}
+    \begin{tabular}{l S S S S[table-format=2.1]}
+      \toprule
+      \textbf{Model} & \textbf{TREC} & \textbf{MR} & \textbf{Subj} & \textbf{AG} \\
+       \midrule
+        Bag of words & 74.8 & 77.8 & 92.6 & 89.6 \\
+        Standard Transformer & 88.6 & 77.2 & 92.3 & 91.7 \\
+        Transformer Program & 85.6 & 77.9 & 93.0 & 90.8 \\
+      \bottomrule
+    \end{tabular}
+    \caption{Classification accuracy on question classification $(TREC)$; sentiment analysis $(MR)$;subjectivity classification $(Subj)$; and topic classification $(AG news)$. The Bag of words baseline is a multinomial Naive Bayes model trained on unigram features.}
+  \end{table}
+in \cref{tab:tc-results} show that Transformer Programs achieved competitive accuracy compared to standard Transformers on most of these datasets. This suggests that the approach can effectively handle various text classification problems.
 
 Overall, the results for both NER and text classification tasks demonstrate the capability of Transformer Programs to learn effective and interpretable solutions for complex natural language processing problems. The comparable performance to standard Transformers, combined with the ability to understand the programs' decision-making logic, makes this approach a promising direction for building more transparent and trustworthy AI systems.
 

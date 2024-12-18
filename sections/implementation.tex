@@ -2,17 +2,26 @@
 
 \section{Implementation}
 \label{ch:implementation}
-How the problem is being addressed. Algorithms, architecture, data, etc. How the implementation is related to the problem formulation above.
+% How the problem is being addressed. Algorithms, architecture, data, etc. How the implementation is related to the problem formulation above.
 
-In order to solve this problem, the author introduced the framework Transformers Programs that takes into account different constraints on the transformer model which helps to clear, deterministic relationship between Transformer components and RASP-like programming constructs. In the following subsections, we will outline the designs of these programs, the specific constrains applied and the optimization process that ensures effective training.  
+In order to solve the problem stated in section \ref{ch:problem-formulation}, the author introduced the framework Transformers Programs that takes into account different constraints on the transformer model which helps to get a clear, deterministic relationship between Transformer components and RASP-like programming constructs. In the following subsections, we will outline the designs of these programs, the specific constrains applied and the optimization process that ensures effective training.  
 
 \subsection{Distangled Residual Stream}
+\label{subsec:distangled-residual-network}
 
-This is one of the critical aspect in the architecture, where the data belonging to different categories in the residual is encoded in distinct and non overlapping space. This ensures that the model's computations are interpretable and modular throughout its layers.
+The concept of a disentangled residual stream is central to the design of Transformer Programs, where token embeddings are structured to encode distinct variables within orthogonal subspaces. This approach ensures that the model maintains a clear separation between different types of information, enhancing interpretability.
+
 \begin{itemize}
-    \item \textbf{Input Representation:} The input embeddings is a set of data from different categorical variables, which are concatenated to form the input representation. The residual stream encodes \( m \) categorical variables, all with cardinality \( k \), resulting in input embeddings \( x \in \{0,1\}^{N \times mk} \). For example, in our minimal Transformer Program, the initial input embeddings are structured to represent two categorical variables- tokens and positions.
+    \item \textbf{Embedding Representation:} The Embedding is designed to represent a predefined set of categorical variables. Each of these variables has a specific cardinality \( k \), resulting in an input embedding \( x \in \{0,1\}^{N \times mk} \). For example, in the \cref{fig:incontext}, initially the input embedding is composed of 2 variables: token and position embeddings. After each attention layer, new variables are added to the residual stream.
     
-    \item \textbf{Reading Variables:} Each layer reads a fixed set of input variables from the residual stream. For achieving this, the  projection matrix \( W \in \mathbb{R}^{mk \times k} \) is defined by an indicator \( \pi \in \{0,1\}^m \) such that \( \sum_{i=1}^{m} \pi_i = 1 \). That is,
+    \begin{figure}[!ht]
+        \centering
+        \includegraphics[width=1\textwidth]{Results/in-context.png}
+        \caption{This figure represent the distangled residual stream of Transformer Programs trained on the in-context learning task adapted from \textcite{friedman2024learning}. The embedding in the residual stream is encoded into fixed set of variables and each module reads a fixed set of variables.}
+        \label{fig:incontext}
+    \end{figure}
+    
+    \item  \textbf{Reading Variables:} Each layer reads a fixed set of variables from the residual stream as seen in the \cref{fig:incontext}. For this, the  projection matrix \( W \in \mathbb{R}^{mk \times k} \) is defined by an indicator \( \pi \in \{0,1\}^m \) such that \( \sum_{i=1}^{m} \pi_i = 1 \). That is,
 
     \[
     W = \begin{bmatrix}
@@ -22,46 +31,41 @@ This is one of the critical aspect in the architecture, where the data belonging
     \end{bmatrix},
     \]
     
-    where \( I_k \) is the \( k \times k \) identity matrix.This is similar to one-hot indicator vectors. The interaction of each attention head with the residual stream is controlled by gating vectors \( \pi_K, \pi_Q, \pi_V \), which specify the variables to use as keys, queries, and values, respectively. 
+    where \( I_k \) is the \( k \times k \) identity matrix.This is similar to one-hot indicator vectors. The interaction of each attention head with the residual stream is controlled by gating vectors \( \pi_K, \pi_Q, \pi_V \), which specify the variables to be use as key, query, and value, respectively. 
     
-    \item \textbf{Writing Variables:} Each layer writes into a new non-overlapping subspace in the residual stream. To achieve this, the output of each module is concatenated with its input i.e.  \( x_i = [x_{i-1}; h(x_{i-1})] \)  where \( h \) is the module, \( x_{i-1} \) is the input to the module and \( h(x_{i-1}) \) is the output. This ensures that the original variables are preserved and that new variables are added without interference.
+    \item \textbf{Writing Variables:} Each module writes its output in new non-overlapping subspace in the residual stream. To accomplish this, the output of each module is concatenated with its input i.e.  \( x_i = [x_{i-1}; h(x_{i-1})] \),  where \( h \) is the module, \( x_{i-1} \) is the input to the module and \( h(x_{i-1}) \) is the output as shown in \cref{fig:incontext}. This ensures that the original variables are preserved and that new variables are added without interference.
 \end{itemize}
 
 \subsection{Categorical Attention Heads}
-% add example in figure of rasp
+\label{subsec:categorical-attention-heads}
 
-Attention is heart of transformers. In Transformer Programs, we are using categorical attention heads which is inspired by RASP. Categorical Attention makes it easy to interpret how different components of the model are interacting with each other. It learn a binary predicate matrix \( W_{\text{predicate}} \in \{0,1\}^{k \times k} \), which is subject to the condition that the sum of each row in \( W_{\text{predicate}} \) is equals one. The self-attention mechanism is then characterized by a score matrix \( S \in \{0,1\}^{N \times N} \), defined as follows:
+Attention is heart of the transformers. In Transformer Programs, they are using categorical attention heads which is inspired by RASP \textcite{weiss2021thinking}. Categorical Attention makes it easy to interpret how different components are interacting with each other. It learns a binary predicate matrix \( W_{\text{predicate}} \in \{0,1\}^{k \times k} \), which is subject to the condition that the sum of each row in \( W_{\text{predicate}} \) is equals one. This means that only one key interact with one query as seen in the \cref{fig:incontext-attention}. The attention mechanism is characterized by a score matrix \( S \in \{0,1\}^{N \times N} \), defined as follows:
 
 \[
-S = x W_Q W_{\text{predicate}} (x W_K)^T.
+S = x  W_Q  W_{\text{predicate}} (x  W_K)^T.
 \]
 To maintain categorical outputs, hard attention is used in which the output is determined by an $argmax$ operation over the attention scores as follows:
-\[
-A_i = \text{One-hot} \, \text{argmax}_j S_{i,j},
-\]
+\begin{equation}
+    A_i = \text{One-hot} \  (\text {argmax}_j S_{i,j})
+    \label{eq:attention-matrix-argmax}
+\end{equation}
 where \( A_i \) denotes the \( i \)-th row of the attention matrix.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Results/in-context-attention.png}
+    \caption{This figure adapted from \textcite{friedman2024learning}, illustrates the categorical attentions of Transformer Programs trained on an in-context learning task. Each key interacts with only one query; for instance, in the first attention layer, it attends to its preceding key}
+    \label{fig:incontext-attention}
+\end{figure}
 
 \subsection{Optimization Strategy}
 
 The training of Transformer Programs involves optimizing a distribution over discrete program weights. The following strategies are employed:
 
 \begin{itemize}
-    \item \textbf{Discrete Weight Modeling:} Transformer Programs rely on three gating indicators \( \pi_K, \pi_Q, \pi_V \) for selecting key, query, and value variables, along with a predicate matrix \( W_{\text{predicate}} \in \{0, 1\}^{k \times k} \) to determine the attention pattern. To parameterize these discrete weights, the gating indicators \( \pi_K, \pi_Q, \pi_V \) are represented by continuous parameters \( \phi_K, \phi_Q, \phi_V \in \mathbb{R}^m \). Each row of \( W_{\text{predicate}} \) is parameterized by \( \psi_1, \psi_2, \ldots, \psi_k \in \mathbb{R}^k \), which define distributions over the entries. These parameters, collectively denoted as \( \Phi \), define a distribution \( p(\theta \mid \Phi) \) over the discrete weights \( \theta \), modeled as the product of categorical distributions.
-
-    \item \textbf{Hard Attention and Relaxation:} The attention mechanism enforces a hard constraint where each query attends to exactly one key. The attention pattern at position \( i \) is defined as:
-    \[
-    A_i = \text{One-hot}\big(\arg\max_j S_{i,j}\big),
-    \]
-    where \( S_{i,j} \) is the attention score between query \( i \) and key \( j \).
+    \item \textbf{Discrete Weight Modeling:} Transformer Programs rely on three gating indicators \( \pi_K, \pi_Q, \pi_V \) for selecting key, query, and value variables, along with a predicate matrix \( W_{\text{predicate}} \in \{0, 1\}^{k \times k} \) to determine the attention pattern as mentioned in \cref{subsec:distangled-residual-network, subsec:categorical-attention-heads}. To parameterize these discrete weights, the gating indicators \( \pi_K, \pi_Q, \pi_V \) are represented by continuous parameters \( \phi_K, \phi_Q, \phi_V \in \mathbb{R}^m \). Each row of \( W_{\text{predicate}} \) is parameterized by \( \psi_1, \psi_2, \ldots, \psi_k \in \mathbb{R}^k \), which define distributions over the entries. These parameters, collectively denoted as \( \Phi \), define a distribution \( p(\theta \mid \Phi) \) over the discrete weights \( \theta \), modeled as the product of categorical distributions.
     
-    During training, the hard attention mechanism is relaxed using the Gumbel-Softmax trick to make it differentiable:
-    \[
-    A_i = \text{Gumbel-Softmax}(S_i).
-    \]
-    
-    This allows gradients to flow through the model while retaining the ability to enforce hard constraints during inference.
-    
-    \item \textbf{Loss Function:} Given a classification dataset \( D \) consisting of input-label pairs \( (w, y) \), the objective is to minimize the expected negative log-likelihood:
+    \item \textbf{Loss Function:} Given a classification dataset \( D \) consisting of input-output pairs \( (w, y) \), the objective is to minimize the expected negative log-likelihood:
     \[
     L = \mathbb{E}_{\theta \sim p(\theta \mid \Phi)} \left[ \mathbb{E}_{w, y \sim D} \left[ -\log p(y \mid w; \theta) \right] \right].
     \]
@@ -70,24 +74,24 @@ The training of Transformer Programs involves optimizing a distribution over dis
     L \approx \frac{1}{S} \sum_{s=1}^{S} \mathbb{E}_{w, y \sim D} \left[ -\log p(y \mid w; \theta_s) \right].
     \]
 
-    \item \textbf{Gumbel-Softmax Approximation:} Optimizing discrete distributions directly is intractable due to non-differentiability. The Gumbel-Softmax trick addresses this by introducing a differentiable approximation. For a categorical variable \( \pi \), the Gumbel-Softmax sample is defined as:
+    \item \textbf{Hard Attention with Gumbel-Softmax Relaxation:} The attention mechanism enforces a hard constraint where each query attends to exactly one key as mentioned in \cref{subsec:categorical-attention-heads}.  However, this constraint is non-differentiable, making it unsuitable for gradient-based optimization. To address this, the Gumbel-Softmax trick by \textcite{jang2016categorical} is used to relax the hard attention during training, enabling a differentiable approximation of discrete variables. The attention matrix \cref{eq:attention-matrix-argmax} is computed as:
+    \[
+    A_i = \text{Gumbel-Softmax}(S_i).
+    \]
+    For a categorical variable \( \pi \), the Gumbel-Softmax sample is defined as:
     \[
     \pi = \text{Softmax}\left(\frac{\phi + g}{\tau}\right),
     \]
-    where \( g \sim \text{Gumbel}(0, 1) \) is Gumbel noise, and \( \tau > 0 \) is the softmax temperature. As \( \tau \to 0 \), the Gumbel-Softmax distribution converges to a one-hot representation, enabling the discrete constraints to be met. The softmax temperature \( \tau \) is gradually decreased during training. This annealing process transitions the model from continuous approximations to discrete representations, ensuring that the learned weights align with the hard constraints by the end of training.
+    where \( g \sim \text{Gumbel}(0, 1) \) is Gumbel noise, and \( \tau > 0 \) is the softmax temperature. The softmax temperature \( \tau \) is gradually decreased during training. As \( \tau \to 0 \), the Gumbel-Softmax distribution converges to a one-hot representation, enabling the discrete constraints to be met.
     
 \end{itemize}
 
 \subsection{Program Extraction}
 
-Once the training process is completed, we convert the trained model into a discrete version by selecting the weights that are most likely, represented as:
+Once the training process is completed, we convert the trained model into a discrete version by selecting the weights that are most likely by applying $argmax$ operation, represented as:
 
 \[
 \theta^* = \arg\max_{\theta} p(\theta \mid \Phi).
 \]
 
-Additionally, hard attention is enforced by applying the argmax operation on the attention values.
-
-The discrete model is then translated into a Python program through a well-defined process, drawing inspiration from RASP (refer to Figure 4). In this approach, each attention head \( h \) is transformed into a predicate function. This function determines whether a specific pair of query and key values satisfies certain conditions, assigning a binary output of either \( 0 \) or \( 1 \).
-
-To implement the attention mechanism, a function named \texttt{select\_closest} is used. This function identifies the nearest key that meets the predicate's criteria for each query. If no matching key is found, it defaults to selecting the first token in the sequence, ensuring the process is consistent and reliable.
+The discrete model is then translated into a Python program through a well-defined process, drawing inspiration from RASP \cite{weiss2021thinking} and Tracr \cite{lindner2024tracr}. In this approach, each attention head \( h \) is transformed into a predicate function. This function determines whether a specific pair of query and key values satisfies certain conditions, assigning a binary output of either \( 0 \) or \( 1 \).

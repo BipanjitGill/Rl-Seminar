@@ -3,23 +3,23 @@
 \section{Limitations and Extensions}
 \label{ch:limitations-and-extensions}
 
-Limitations and assumptions of the approach. Possible meaningful extensions and possibilities for future research.
+% Limitations and assumptions of the approach. Possible meaningful extensions and possibilities for future research.
 
 There are several limitations of this frameworks, despite their promising capabilities in learning interpretable solutions:
 
 \begin{itemize}
-    \item \textbf{Difficulty with Longer Inputs:} Transformer Programs face challenges in maintaining performance as input sequences become longer, resulting in a significant decline in accuracy with increasing sequence length. While standard transformers also experience this issue, the accuracy degradation is more severe in Transformer Programs. This is primarily due to the increasing complexity of the search space for discrete operations, which makes it harder for the optimization process to identify effective solutions.
+    \item \textbf{Difficulty with Longer Inputs:} Transformer Programs face challenges in maintaining performance as input sequences become longer, resulting in a significant decline in accuracy with increasing sequence length. While standard transformers also experience this issue, the accuracy degradation is more severe in Transformer Programs as shown in \cref{fig:comp-with-std}. This is primarily due to the increasing complexity of the search space for discrete operations, which makes it harder for the optimization process to identify effective solutions.
     
     \item \textbf{Complexity Beyond Necessity:} The programs often utilize more layers and attention heads than might be intuitively expected. For example, \citeauthor{weiss2021thinking}\cite{weiss2021thinking} present RASP solutions for Sort and Reverse, which require two layers and one attention head,  while our best models use three layers and eight attention heads. This indicates that the optimization procedure might not be efficiently finding the most concise and elegant solutions.
     
     \item \textbf{Difficulty Finding Generalizing Solutions:} The Reverse task highlights this issue. While a straightforward, generalizing program exists for reversing sequences, the learning process struggled to discover it. Manually initializing certain components helped the model learn the remaining parts, suggesting the optimization procedure is prone to getting stuck in local minima, especially when learning attention patterns.
     
-    \item \textbf{Interpreting Program Complexity:} Although Transformer Programs are designed for interpretability, they can become hard to understand as tasks grow more complex. The use of discrete operations and multiple layers or modules can lead to significantly larger code, making it difficult to grasp the overall logic, even with code analysis tools.
+    \item \textbf{Interpreting Program Complexity:} Although Transformer Programs are designed for interpretability, But the programs become hard to understand as tasks grow more complex. The use of discrete operations and multiple layers or modules can lead to significantly larger code, making it difficult to grasp the overall logic, even with code analysis tools.
 
-    \item \textbf{Limited Expressiveness:}The constraints imposed on certain modules for the sake of interpretability might limit the expressiveness of Transformer Programs compared to standard Transformers. This trade-off could impact performance, especially on tasks that require more flexible operations.
+    \item \textbf{Limited Expressiveness:}The constraints imposed on certain modules for the sake of interpretability might limit the expressiveness of Transformer Programs compared to standard Transformers. This trade-off also impact the performance, especially on tasks that require more flexible operations.
 \end{itemize}
 
-To address these limitation and enhance its capabilities, there are several possible extensions focusing on improving the optimization, increasing expressiveness while maintaining interpretability, and exploring new applications as follows:
+To address these limitation and enhance its capabilities, there are several possible extensions focusing on improving the optimization, increasing expressiveness while maintaining interpretability as follows:
 
 \begin{itemize}
     \item \textbf{Improved Attention Mechanism:} Currently, categorical attention heads are limited to one-to-one mappings between query and key values. Allowing for one-to-many mappings (where a query can attend to multiple keys) could enable the model to learn more complex patterns like "less than" relationships, which are crucial for tasks like sorting.
