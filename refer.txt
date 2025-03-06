@@ -1,0 +1,178 @@
+Learning Transformer Programs: A Report
+1. Introduction
+This research paper introduces a groundbreaking approach to address the long-standing challenge of interpretability in Transformer models. Transformer models, renowned for their exceptional performance across various fields, operate as intricate "black boxes," making it difficult to decipher their decision-making processes. This inherent opacity raises concerns regarding their reliability, especially in critical applications where understanding their reasoning is paramount.
+The authors argue that existing interpretability techniques, such as analyzing attention patterns or probing hidden representations, provide limited and potentially misleading insights, failing to fully unveil the algorithms driving these models. While mechanistic interpretability endeavors to reverse-engineer Transformers into comprehensible components, it demands considerable manual effort and often encounters obstacles due to model complexity.
+Inspired by RASP, a programming language for defining Transformer operations, and Tracr, its compiler counterpart, this research proposes a novel approach. Instead of relying on manually crafted programs, the authors suggest training Transformers and then automatically "decompiling" them into understandable programs. This method allows for the development of intrinsically interpretable models, offering a transparent view of their functioning.
+2. Problem Formulation
+The central problem addressed in this paper is the inherent lack of interpretability in standard Transformer models. Although these models demonstrate impressive capabilities, their complex architecture and learned weights obscure the specific algorithms they employ. This "black box" nature poses challenges for auditing, debugging, and ensuring the reliability of these models, particularly in high-stakes applications.
+The paper tackles this problem by introducing a method for training Transformers that are interpretable by design. This means that the trained models can be automatically converted into human-readable programs, revealing the underlying algorithms in a clear and understandable way.
+The authors aim to learn "Transformer Programs," which are Transformers with constraints on their weights to ensure a direct mapping to program-like components. These constraints are:
+●
+Disentangled Residual Stream: This constraint enforces the token embeddings within the model to represent a fixed set of named variables, each residing in an orthogonal subspace. Each module within the Transformer Program reads specific variables and writes its output to a dedicated address, ensuring a clear information flow through the model.
+●
+Interpretable Modules: The individual modules within the Transformer Program are designed to execute rule-based mappings between input and output variables, resembling operations in programming languages. The paper focuses on categorical attention heads that learn one-to-one correspondences between key and query variables, effectively implementing a learnable predicate function to govern attention patterns.
+By imposing these constraints, the learned Transformer Programs can be deterministically transformed into equivalent Python programs. These programs are functionally identical to the original models but significantly easier to interpret. This program-like representation facilitates analysis and debugging using conventional code analysis tools, unlocking a deeper understanding of the model's inner workings.
+3. Implementation
+To address the problem of interpretability in Transformer models, the authors develop Transformer Programs, a modified Transformer architecture that can be trained using gradient-based optimization and then automatically decompiled into human-readable programs.
+3.1 Model Architecture
+●
+Disentangled Residual Stream: The Transformer Program is designed to maintain a disentangled residual stream, where token embeddings represent a fixed set of named variables, each encoded in an orthogonal subspace. The input embedding encodes the values of initial variables like token and position embeddings. Subsequent attention layers read specific variables and write a new variable to a dedicated address.
+●
+Categorical Attention Modules: Each attention head implements an interpretable, rule-based mapping between input and output variables. This involves:
+○
+Computing Attention Pattern: Each attention head reads one key and one query variable. It then uses a learnable binary predicate matrix to determine which queries should attend to which keys.
+○
+Aggregating Categorical Variables: The model uses hard attention, ensuring each query attends to a single key, guaranteeing a categorical output. If there is no matching key, it attends to a beginning-of-sequence token. If multiple keys match, it attends to the closest one.
+●
+Extensions: The framework is extended to support:
+○
+Learned Word Embeddings: For larger NLP tasks, the model learns a factored categorical embedding, representing each token as a product of multiple categorical variables.
+○
+Numerical Attention: A form of numerical attention is implemented to facilitate operations like counting. It uses a single scalar variable, fixed to one, ensuring integer outputs within a bounded range.
+○
+Feed-Forward Layers: Simple feed-forward layers act as lookup tables, reading a predefined set of numerical or categorical variables and outputting a new categorical variable.
+3.2 Training and Decompilation
+●
+Optimization: The model is trained using the Gumbel reparameterization to optimize a distribution over discrete program weights. This involves using Gumbel-Softmax distributions to sample discrete weights during training. The Gumbel temperature is annealed throughout training to approach one-hot samples of the categorical distribution.
+●
+Program Extraction: After training, a discrete model is obtained by selecting the maximum likelihood weights and applying the argmax operation for hard attention. This discrete model is then deterministically mapped to a Python program inspired by RASP.
+The implementation directly addresses the problem of interpretability by constraining the model architecture and training procedure to guarantee a mapping to a human-readable program. This allows for a clear understanding of the model's decision-making process through the lens of a program.
+4. Results
+The authors validate their approach by conducting experiments on various tasks, demonstrating the effectiveness and interpretability of Transformer Programs.
+4.1 In-Context Learning
+The authors initially demonstrate the capabilities of Transformer Programs on a toy in-context learning task, showcasing its ability to learn and generalize simple rules. They train a two-layer attention-only model on sequences of alternating letters and numbers, achieving perfect accuracy on a held-out test set. Analysis of the learned program reveals the emergence of "induction heads," a pattern previously observed in standard Transformers. This experiment highlights the ability of Transformer Programs to learn meaningful solutions while remaining interpretable.
+4.2 RASP Tasks
+Next, they evaluate Transformer Programs on a suite of algorithmic tasks introduced by Weiss et al. , including sorting, reversing, and recognizing balanced parenthesis languages. On five out of seven tasks, the learned programs achieve over 99% accuracy, demonstrating their effectiveness in handling diverse algorithmic problems.
+Analysis of the Learned Programs:
+●
+Sorting Task: Examination of a program for the Sort task reveals the model's use of various heuristics and strategies to sort the sequences. For instance, one attention head learns to identify specific tokens like "1" and "4" and uses their presence to influence the output. This demonstrates the ability of Transformer Programs to learn non-trivial solutions by composing operations across multiple layers.
+●
+Comparison to Standard Transformers: In general, standard Transformers outperform Transformer Programs, particularly on tasks with longer sequences and larger vocabularies. However, both models exhibit similar trends with performance degrading as task complexity increases. This suggests that while Transformer Programs show promise, further optimization is needed to match the performance of standard Transformers on more challenging tasks.
+4.3 NLP Tasks: Named Entity Recognition
+To evaluate the applicability of Transformer Programs on real-world NLP tasks, the authors conduct experiments on Named Entity Recognition using the CoNLL-2003 dataset. The learned Transformer Program achieves comparable performance to a standard Transformer, demonstrating its ability to learn and generalize on real-world data.
+Interpretability Analysis:
+●
+The authors showcase the interpretability of the learned program by examining how it distinguishes between location and organization entities. Analysis reveals that the model leverages word-level features, position information, and contextual clues gathered from neighboring words to make predictions. This example highlights the ability of Transformer Programs to provide insights into the model's decision-making process.
+5. Limitations and Extensions
+While Transformer Programs represent a significant step towards intrinsically interpretable machine learning, they also exhibit limitations that present opportunities for future research.
+5.1 Scaling Challenges
+●
+Longer Inputs and Parsimonious Solutions: Transformer Programs can struggle to learn on longer inputs and may not consistently discover the most concise solutions. This indicates potential limitations in the optimization process, hindering the model's ability to find optimal program representations.
+5.2 Program Interpretability
+●
+Complexity of Programs: Despite their deterministic mapping to programs, the complexity of these programs can grow considerably for more intricate tasks. This raises questions about the practical interpretability of these programs, particularly for tasks requiring extensive reasoning or complex decision-making processes.
+5.3 Potential Extensions
+●
+Improved Optimization Techniques: Future research could explore more sophisticated optimization methods for discrete programs, potentially addressing the limitations observed in scaling Transformer Programs to more complex tasks.
+●
+Expanded Module Set: The current implementation of Transformer Programs utilizes a limited set of modules. Expanding this set to include additional RASP primitives or incorporating operations like one-to-many attention predicates and score-based attention could enhance model expressiveness while maintaining interpretability.
+●
+Automated Program Analysis: Developing automated analysis techniques for the generated programs could alleviate the challenges of understanding complex programs, potentially revealing higher-level insights and patterns in the model's reasoning.
+6. Related Work
+The research on learning Transformer Programs connects to various fields, including program induction, neuro-symbolic methods, and interpretable machine learning.
+●
+Program Induction and Neuro-Symbolic Methods: This work builds upon previous efforts in program induction and neuro-symbolic AI, which aim to learn symbolic representations from data. Specifically, it draws inspiration from Inductive Logic Programming and methods utilizing neural networks to search for discrete logical expressions.
+●
+Transformers and Formal Languages: Previous research has explored the relationship between Transformers and formal languages, particularly in characterizing the expressivity of Transformers with hard attention. Works like RASP and Tracr provide a foundation for mapping between Transformer components and human-readable code, paving the way for learning Transformer Programs.
+●
+Interpretable Machine Learning Models: This research contributes to the growing body of work on intrinsically interpretable machine learning models. It differs from previous approaches that introduce architectural modifications to enhance interpretability by directly learning models that are representable as programs.
+7. Summary and Discussion
+This paper presents a significant contribution to the field of interpretable machine learning by introducing Transformer Programs, a method for learning Transformers that can be automatically converted into human-readable programs. This approach addresses the fundamental challenge of understanding the inner workings of these powerful models, offering a compelling alternative to existing interpretability techniques.
+The authors demonstrate the feasibility of learning Transformer Programs on a range of tasks, including synthetic algorithmic problems and real-world NLP tasks like named entity recognition. The results showcase the model's ability to learn effective solutions while maintaining interpretability, allowing for analysis and debugging using standard code analysis tools.
+The paper's strengths lie in its innovative approach to interpretability, its connection to established frameworks like RASP, and its empirical validation on diverse tasks. However, the limitations of the approach, particularly the scaling challenges and the potential complexity of the generated programs, highlight crucial areas for future research.
+Overall, this research paves the way for a new paradigm in developing and understanding machine learning models. By shifting the focus from explaining black-box models to learning inherently interpretable ones, Transformer Programs offer a promising avenue for building more transparent, reliable, and accountable AI systems.
+
+
+
+This paper presents Transformer Programs, a novel approach to developing intrinsically interpretable machine learning models. It addresses the critical challenge of interpretability in Transformer models, which, despite their remarkable performance in various domains, often operate as "black boxes," making it difficult to understand their decision-making processes [1, 2].
+
+The key motivation for this work stems from the limitations of existing interpretability methods. While techniques like analyzing attention patterns and probing hidden representations offer some insights, they often provide incomplete or potentially misleading explanations and fall short of revealing the underlying algorithms [3, 4]. Mechanistic interpretability aims to reverse-engineer Transformers into understandable components but requires significant manual effort and can be hindered by model complexity [4].
+
+This research takes inspiration from RASP, a programming language for describing Transformer operations, and Tracr, a compiler that converts RASP programs into Transformer networks [5]. However, instead of compiling human-written programs, the authors propose training Transformers and then automatically decompiling them into human-readable programs. This approach enables the creation of models that are interpretable by design, providing a clearer understanding of how they function [5].
+
+
+
+### Report on "Learning Transformer Programs"
+
+#### 1. Introduction
+The paper "Learning Transformer Programs" introduces a novel approach to training Transformers that are intrinsically interpretable. Unlike traditional methods that aim to reverse-engineer or explain black-box models, this work designs Transformers capable of being decompiled into human-readable programs. These programs are easy to debug and understand, addressing the fundamental issue of interpretability in modern machine learning models. The motivation stems from the increasing use of Transformers in critical applications, where transparency and interpretability are paramount. By leveraging programming paradigms like RASP and introducing constraints in the Transformer architecture, the authors propose a method to make these models more comprehensible without sacrificing performance.
+
+#### 2. Problem Formulation
+The primary problem addressed in this paper is the lack of interpretability in Transformer models, which makes them challenging to debug, audit, and trust. The task is to design a Transformer that can:
+
+1. Perform competitively with standard Transformers on algorithmic and NLP tasks.
+2. Be automatically converted into discrete, human-readable programs.
+
+Mathematically, the problem can be formulated as optimizing Transformer parameters under constraints that ensure a deterministic mapping between model components and interpretable program constructs. Let the Transformer parameters be θ, the dataset be \( D = \{(w_i, y_i)\} \), and the program space be \( \mathcal{P} \). The objective is to find:
+\[
+\min_{\theta \in \mathcal{P}} \mathbb{E}_{(w, y) \sim D} [\mathcal{L}(y, f(w; \theta))]
+\]
+where \( \mathcal{L} \) is the loss function, and \( \mathcal{P} \) represents the interpretable subspace.
+
+To ensure interpretability, constraints are applied to the Transformer architecture. These include disentangling the residual streams and enforcing orthogonality among variable embeddings. Additionally, categorical attention heads are restricted to rule-based mappings, which guarantees a straightforward conversion to a programmatic representation.
+
+#### 3. Implementation
+The implementation consists of designing a Transformer architecture with constraints ensuring interpretability. Key elements include:
+
+- **Disentangled Residual Streams:** Each variable is encoded in an orthogonal subspace, ensuring disentangled representations.
+- **Categorical Attention Heads:** Attention heads are constrained to implement interpretable, rule-based mappings using categorical variables.
+- **Program Extraction:** After training, the Transformer is decompiled into a human-readable Python program by mapping each attention and feed-forward operation to discrete logic.
+
+The architecture was validated on tasks like in-context learning, algorithmic problems (sorting, Dyck languages), and NLP tasks (named entity recognition and text classification). A modified training process incorporating Gumbel-Softmax relaxations was used to optimize the constrained Transformer parameters.
+
+Figure 1 illustrates the disentangled residual stream design. Each variable occupies a distinct subspace, and transformations occur in a structured and interpretable manner:
+
+![Figure 1: Disentangled Residual Streams](placeholder_for_figure_1.png)
+
+#### 4. Results
+The experiments demonstrated that Transformer Programs achieve competitive accuracy while being fully interpretable:
+
+- **Algorithmic Tasks:** Achieved >99% accuracy on tasks like sorting and histogram computation for short sequences. Results degraded for longer sequences due to optimization challenges.
+- **NLP Tasks:** On the CoNLL-2003 Named Entity Recognition dataset, the Transformer Program achieved an F1 score of 76.1, outperforming a standard Transformer.
+- **Interpretability:** The decompiled programs provided insights into model decision-making, enabling debugging and circuit analysis.
+
+For example, Table 1 summarizes the performance of Transformer Programs across various algorithmic tasks:
+
+| Task               | Accuracy (%) | Layers | Attention Heads |
+|--------------------|--------------|--------|-----------------|
+| Sorting            | 99.83        | 3      | 8               |
+| Reverse            | 99.79        | 3      | 8               |
+| Histogram          | 100.0        | 1      | 4               |
+
+#### 5. Limitations and Extensions
+- **Limitations:**
+  1. **Scaling Issues:** Performance degraded for longer sequences and larger vocabularies.
+  2. **Optimization Challenges:** The method struggled to learn parsimonious solutions for some tasks.
+  3. **Complexity of Extracted Programs:** While interpretable, the programs can still be intricate and non-intuitive.
+
+- **Extensions:**
+  1. Introduce more expressive modules to handle diverse tasks.
+  2. Develop improved optimization methods for discrete program spaces.
+  3. Incorporate automatic analysis tools to enhance program interpretability.
+
+#### 6. Related Work
+This work builds upon:
+
+- **Mechanistic Interpretability:** Efforts like Tracr and RASP provided the foundation for mapping between Transformer operations and human-readable code.
+- **Program Induction:** Extends ideas from program induction and neuro-symbolic methods to sequence modeling.
+- **Interpretable Models:** Shares goals with intrinsically interpretable models like decision trees but applies them to sequence tasks.
+
+Compared to prior work, this approach uniquely focuses on training Transformers that are interpretable by design rather than applying post-hoc interpretability methods.
+
+#### 7. Summary and Discussion
+This paper presents a significant step toward intrinsically interpretable machine learning by training Transformers that can be decompiled into discrete, human-readable programs. The core contribution lies in demonstrating that constrained Transformers can achieve competitive performance while offering unprecedented transparency. However, challenges like scaling and optimization remain.
+
+In analyzing this work, I appreciated its novel perspective on interpretability and its practical utility for debugging and understanding model behavior. The approach feels particularly promising for high-stakes applications where transparency is essential. However, I expected more robust scaling solutions and a clearer roadmap for extending the method to broader tasks.
+
+Figure 2 shows a Python decompilation example, illustrating how an attention head operation is mapped to program logic:
+
+![Figure 2: Decompiled Attention Head Logic](placeholder_for_figure_2.png)
+
+Overall, "Learning Transformer Programs" contributes a valuable framework to the interpretability domain, combining theoretical innovation with practical application. It bridges the gap between black-box models and human-understandable logic, laying the groundwork for future research on interpretable AI.
+
+
+
+Recently, Transformers have revolutionized the machine learning field across various domains, including natural language processing (NLP) and computer vision. Prominently, large Transformer-based language models, or LLMs, like GPT-3 by Brown et al. in 2020, have shown remarkable general-purpose capabilities.These models are now widely integrated into user-facing applications, including chatbots, search engines, and code assistants. Large language models (LLMs) such as GPT4 (OpenAI, 2023), LLaMA-2 (Touvron et al.,2023), Claude-3 (AnthropicAI, 2023), and Gemini (Team et al., 2023) have led to tremendous advancements in language understanding and generation, achieving state-of-the-art performance in a wide array of real-world tasks.  In computer vision, Vision Transformers (ViTs) have demonstrated superior performance in image classification and object detection (Dosovitskiy et al., 2020). Additionally, Transformers are being employed in scientific domains for tasks such as protein folding prediction with models like AlphaFold  More recently, Transformer models have been applied to a variety of scientific tasks ranging from foundation models in fluid dynamics to astrophysics and climate science (Nguyen et al., 2023; McCabe et al., 2023; Lanusseet al., 2023). However, despite their impressive capabilities, all these models are like a black box which takes some input and prodice some output. We do not know how the model process each part of its input and how it arrives to its decision. Understanding these models is difficult because these models consist of densely connected layers of non linear complex functions.
+
+To understand its working, many researchers try to analyse weights of attention weights and hidden representations. In What does BERT look at? An Analysis of BERT’s Attention, the author try to understand what is the function of each head. Another line of work investigates the internal vector representations of the model (Adi et al.,2017; Giulianelli et al., 2018; Zhang and Bowman, 2018,BERT Rediscovers the Classical NLP Pipeline), often using probing classifiers. Probing classifiers are simple neural networks that take the internal vector representations of a pre-trained model as input. They are trained to do a supervised task (e.g., part-of-speech tagging). If a probing classifier achieves high accuracy, it suggests that the vector representations reflect the corresponding aspect of language(e.g., low-level syntax). These methods provide partial insight intomodel behavior but have also been shown to be misleading [Jain and Wallace, 2019, Bolukbasi et al., 2021]; they do not tell algorithically what the model is doing.
+

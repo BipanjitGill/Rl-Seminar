@@ -8,10 +8,10 @@ We begin this section by introducing the transformer architecture, which serves 
 
 \subsection{Transformer Architecture}
 
-The Transformer by \textcite{vaswani2017attention} is simple neural network based solely on self-attention. The input is a sequence of tokens $w_1, w_2, \dots, w_n$, where $w_i \in V$ (discrete vocabulary). At input layer, the model maps tokens to a $d$-dimensional embedding, represented as $\mathbf{x}_0 \in \mathbb{R}^{n \times d}$, which is sum of learned token embedding and a position embedding. Each subsequent layer $i$ consists of a multi-head attention layer (MHA) followed by a multilayer perceptron layer (MLP):
+The Transformer by \textcite{vaswani2017attention} is a neural network based on self-attention. The input is a sequence of tokens $w_1, w_2, \dots, w_n$, where $w_i \in V$ (discrete vocabulary). At input layer, the model maps tokens to a $d$-dimensional embedding, represented as $\mathbf{x}_0 \in \mathbb{R}^{n \times d}$, which is sum of learned token embedding and a position embedding (in later transformer variants, the positional embedding is concatenated with the token embedding instead of being summed). Each subsequent layer $i$ consists of a multi-head attention layer (MHA) followed by a multilayer perceptron layer (MLP):
 
 \[
-\mathbf{x}^{(i)} = \mathbf{x}^{(i-1)}  +  \text{MLP}^{(i)}\big   (\mathbf{x}^{(i-1)} + \text{MHA}^{(i)}\big (\mathbf{x}^{(i-1)}\big ) \big )
+\mathbf{x}^{(i)} = \text{LayerNorm} ( \mathbf{x}^{(i-1)}  +  \text{MLP}^{(i)}\big  ( \text{LayerNorm}   (\mathbf{x}^{(i-1)} + \text{MHA}^{(i)}\big (\mathbf{x}^{(i-1)}\big ) \big )))
 \]
 
 Following \textcite{elhage2021mathematical}, Multi-head attention (with $H$ heads) can be expressed as:
@@ -21,7 +21,7 @@ Following \textcite{elhage2021mathematical}, Multi-head attention (with $H$ head
 \]
 
 where $d_h$ is the attention embedding dimension, $\mathbf{W}_Q^h, \mathbf{W}_K^h, \mathbf{W}_V^h \in \mathbb{R}^{d \times d_h}$ are the query, key, and value projection matrices, respectively, and $\mathbf{W}_h^O \in \mathbb{R}^{d_h \times d}$ projects the output back to the model dimension.
-The MLP layer operates independently at each position; in the standard Transformer, it is a two-layer feedforward network:
+The MLP layer operates independently at each position in the standard Transformer defined as:
 
 \[
 \text{MLP}(\mathbf{x}) = \sigma(\mathbf{x}\mathbf{W}_1)\mathbf{W}_2,
@@ -35,17 +35,17 @@ where $\mathbf{W}_1 \in \mathbb{R}^{d \times d_m}$, $\mathbf{W}_2 \in \mathbb{R}
 
 \subsection{Programming Language for Transformers}
 
-Restricted Access Sequence Processing Language (RASP), introduced by \textcite{weiss2021thinking}, is a programming language designed to model the functionality of transformers. It consists of various functions, each corresponding to different components of a transformer model, effectively simulating their operations. It provides select-aggregate operation which corresponds to attention in transformers. The select operation takes two lists, representing keys, query pair and a boolean predicate(p), and computes a matrix describing for each key, query pair whether the condition $p(k,q)$ holds. The aggregate operation takes one selection matrix (similar to attention matrix) and one list (value), and averages for each row of the matrix the values of the list in its selected columns. Tracr by \textcite{lindner2024tracr} is a compiler for RASP that converts it into different tranformer components.
+Restricted Access Sequence Processing Language (RASP), introduced by \textcite{weiss2021thinking}, is a programming language that simulates Transformer functionality through functions representing its components. It provides select-aggregate operation that is similar to attention in Transformers. The select operation (as shown in \cref{fig:rasp-example}) takes two lists, similar to key-query matrix and a boolean predicate(p), and computes a score matrix describing for each key-query pair $(k_i,q_j)$ whether the condition $p(k_i,q_j)$ holds. The aggregate operation uses this matrix and a list (analogous to a value vector) to compute the average values for selected columns in each row. Tracr by \textcite{lindner2024tracr} is a compiler for RASP that converts it into different Tranformer components.
 
 \begin{figure}[!ht]
     \centering
     \includegraphics[width=0.66\textwidth]{problem-formulation/rasp-example.png}
-    \caption{This is an example of select and aggregate operation in RASP, adapted from \textcite{weiss2021thinking}.}
+    \caption{Example of select and aggregate operation to reverse a string. The select operation compares indices and reverse indices using boolean predicate (==), and aggregate operation applies the resulting matrix to the string to be reverse \cite{weiss2021thinking}.}
     \label{fig:rasp-example}
   \end{figure}
 
 \subsection{Problem in Mechanistic Interpretability}
 
-Mechanistic Interpretability  refers to the process of zooming into neural networks to understand the underlying components and mechanisms that drive their behaviors. In the context of transformers, mechanistic interpretability can help understand how the model processes information, how each head attends to different parts of the input, and how it generates output. But this task is difficult for transformers because in this case different attention heads take input from same residual stream and writes to same subspace in the reidual stream. This makes difficult to understand contribution of each head and information flow between different components. Also transformers have millions and billions of parameters, making it difficult to pinpoint how individual parameters or components contribute to the model's behavior. Attention mechanisms assign soft weights to tokens, but interpreting these weights is not always straightforward. Relying on the attention patterns alone can also be misleading \cite{jain2019attention,bolukbasi2021interpretability}, as they do not necessarily reflect the actual contribution of each token to the final prediction.
+Mechanistic interpretability refers to the process of zooming into neural networks to understand the underlying components and mechanisms that drive their behaviors\cite{olah2020zoom}. For Transformer, this means analyzing how the model processes the inputs, how attention heads focus on it, and how outputs are generated. However, this is challenging as all components share the same residual stream for input and writing output, complicating the analysis of individual contributions and information flow. Also transformers have millions or billions of parameters, making it difficult to identify the specific contributions of individual components to the final output.  Attention mechanisms assign soft weights to tokens, but these weights are not always indicative of each token's true contribution to the prediction, and relying solely on attention patterns can be misleading \cite{jain2019attention,bolukbasi2021interpretability}.
 
-To overcome these challenges, in this work the author define some constraints on the differnt components of the transformer model so that there is one to one mapping to RASP program. The author define the set of transformers satisfying these constraints as Transformer Programs. 
+To address these challenges, the authors train the transformer models in such a way that there is one-to-one mapping to RASP programs, which can be easily interpreted. These models are referred to as Transformer Programs.

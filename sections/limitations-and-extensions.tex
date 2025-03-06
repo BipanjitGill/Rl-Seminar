@@ -5,30 +5,37 @@
 
 % Limitations and assumptions of the approach. Possible meaningful extensions and possibilities for future research.
 
-There are several limitations of this frameworks, despite their promising capabilities in learning interpretable solutions:
+Transformer Programs, while promising for interpretable machine learning, face several limitations that suggest avenues for future research:
 
-\begin{itemize}
-    \item \textbf{Difficulty with Longer Inputs:} Transformer Programs face challenges in maintaining performance as input sequences become longer, resulting in a significant decline in accuracy with increasing sequence length. While standard transformers also experience this issue, the accuracy degradation is more severe in Transformer Programs as shown in \cref{fig:comp-with-std}. This is primarily due to the increasing complexity of the search space for discrete operations, which makes it harder for the optimization process to identify effective solutions.
-    
-    \item \textbf{Complexity Beyond Necessity:} The programs often utilize more layers and attention heads than might be intuitively expected. For example, \citeauthor{weiss2021thinking}\cite{weiss2021thinking} present RASP solutions for Sort and Reverse, which require two layers and one attention head,  while our best models use three layers and eight attention heads. This indicates that the optimization procedure might not be efficiently finding the most concise and elegant solutions.
-    
-    \item \textbf{Difficulty Finding Generalizing Solutions:} The Reverse task highlights this issue. While a straightforward, generalizing program exists for reversing sequences, the learning process struggled to discover it. Manually initializing certain components helped the model learn the remaining parts, suggesting the optimization procedure is prone to getting stuck in local minima, especially when learning attention patterns.
-    
-    \item \textbf{Interpreting Program Complexity:} Although Transformer Programs are designed for interpretability, But the programs become hard to understand as tasks grow more complex. The use of discrete operations and multiple layers or modules can lead to significantly larger code, making it difficult to grasp the overall logic, even with code analysis tools.
+\textbf{Scalability and Optimization:}  Transformer Programs experience significant performance degradation on longer sequences compared to standard Transformers due to the increasing complexity of discrete operations. Learned programs often exhibit unnecessary complexity (more layers/heads than needed), and struggle to find generalize solutions. For example, \textcite{weiss2021thinking} present RASP solutions for Sort, which require two layers and one attention head, while our best models use three layers and eight attention heads. The authors tried to manully initialize the attention layers and the MLP input weights for $Reverse$ task with longer sequences and finds that the model was able to learns the remaining components successfully. This highlights it is an optimization issue rather than an expressivity issue as we can write Transformer Programs that achieve perfect accuracy at arbitrary sequence lengths. Exploring advanced discrete optimization techniques is essential for more robust and efficient learning.
 
-    \item \textbf{Limited Expressiveness:}The constraints imposed on certain modules for the sake of interpretability might limit the expressiveness of Transformer Programs compared to standard Transformers. This trade-off also impact the performance, especially on tasks that require more flexible operations.
-\end{itemize}
+\textbf{Expressiveness and Interpretability Trade-off:} The constraints on the model for interpretability can limit expressiveness compared to standard transformers, impacting performance on complex tasks. Enhancing attention mechanisms, such as allowing one-to-many mappings or score-based attention, could improve expressiveness and performance but challenges interpretability. Balancing expressiveness with maintainable interpretability is a key research direction. 
 
-To address these limitation and enhance its capabilities, there are several possible extensions focusing on improving the optimization, increasing expressiveness while maintaining interpretability as follows:
+\textbf{Program Understanding:} As task complexity increases, the resulting programs become larger and difficult to understand, even with analysis tools. Developing automated program analysis, simplification, and redundancy identification tools is essential for improving comprehension and practical usability.
 
-\begin{itemize}
-    \item \textbf{Improved Attention Mechanism:} Currently, categorical attention heads are limited to one-to-one mappings between query and key values. Allowing for one-to-many mappings (where a query can attend to multiple keys) could enable the model to learn more complex patterns like "less than" relationships, which are crucial for tasks like sorting.
-    
-    \item \textbf{Enhancing Expressiveness While Maintaining Interpretability:} A key challenge is to strike a balance between program complexity and expressiveness. Introducing more sophisticated modules, like the "select best" operation \cite{weiss2021thinking} which uses both boolean predicate and score assigned to each query-key pair, could improve performance and expressiveness. However, incorporating this score-based attention presents a challenge in maintaining interpretability due to the increased complexity of the attention mechanism.  
-    
-    \item  \textbf{Exploring Advanced Discrete Optimization Techniques:} Investigating alternative optimization techniques, particularly those tailored for discrete search spaces, could lead to more robust and efficient learning, enabling the discovery of generalizing and parsimonious solutions.
-    
-    \item \textbf{Developing Automated Tools for Program Analysis and Simplification:} As program complexity increases, manual inspection and interpretation become more challenging. Creating automated tools to analyze the learned programs, identify redundancies or inefficiencies, and simplify the overall structure would greatly enhance their interpretability and facilitate understanding. 
-\end{itemize}
 
-By pursuing these extensions, future research can overcome current limitations and unlock the full potential of Learning Transformer Programs for building truly interpretable and trustworthy machine learning models.
+% \begin{itemize}
+%     \item \textbf{Difficulty with Longer Inputs:} Transformer Programs face challenges in maintaining performance as input sequences become longer, resulting in a significant decline in accuracy. While standard transformers also experience this issue, the accuracy degradation is more severe in Transformer Programs as shown in \cref{fig:comp-with-std}. This is primarily due to the increasing complexity of the search space for discrete operations, which makes it harder for the optimization process to identify effective solutions.
+    
+%     \item \textbf{Complexity Beyond Necessity:} The programs often utilize more layers and attention heads than might be intuitively expected. For example, \textcite{weiss2021thinking} present RASP solutions for Sort, which require two layers and one attention head, while our best models use three layers and eight attention heads. This indicates that the optimization procedure might not be efficiently finding the most concise and elegant solutions.
+    
+%     \item \textbf{Difficulty Finding Generalizing Solutions:} The Reverse task highlights this issue. While a straightforward, generalizing program exists for reversing sequences, the learning process struggled to discover it. Manually initializing certain components helped the model learn the remaining parts, suggesting the optimization procedure is prone to getting stuck in local minima, especially when learning attention patterns.
+    
+%     \item \textbf{Interpreting Program Complexity:} Although Transformer Programs are designed for interpretability, But the programs become hard to understand as tasks grow more complex. The use of discrete operations and multiple layers or modules can lead to significantly larger code, making it difficult to grasp the overall logic, even with code analysis tools.
+
+%     \item \textbf{Limited Expressiveness:}The constraints imposed on certain modules for the sake of interpretability might limit the expressiveness of Transformer Programs compared to standard Transformers. This trade-off also impact the performance, especially on tasks that require more flexible operations.
+% \end{itemize}
+
+% To address these limitation and enhance its capabilities, there are several possible extensions focusing on improving the optimization, increasing expressiveness while maintaining interpretability as follows:
+
+% \begin{itemize}
+%     \item \textbf{Improved Attention Mechanism:} Currently, categorical attention heads are limited to one-to-one mappings between query and key values. Allowing for one-to-many mappings (where a query can attend to multiple keys) could enable the model to learn more complex patterns like "less than" relationships, which are crucial for tasks like sorting.
+    
+%     \item \textbf{Enhancing Expressiveness While Maintaining Interpretability:} A key challenge is to strike a balance between program complexity and expressiveness. Introducing more sophisticated modules, like the "select best" operation \cite{weiss2021thinking} which uses both boolean predicate and score assigned to each query-key pair, could improve performance and expressiveness. However, incorporating this score-based attention presents a challenge in maintaining interpretability due to the increased complexity of the attention mechanism.  
+    
+%     \item  \textbf{Exploring Advanced Discrete Optimization Techniques:} Investigating alternative optimization techniques, particularly those tailored for discrete search spaces, could lead to more robust and efficient learning, enabling the discovery of more optimal solutions.
+    
+%     \item \textbf{Developing Automated Tools for Program Analysis and Simplification:} As program complexity increases, manual inspection and interpretation become more challenging. Creating automated tools to analyze the learned programs, identify redundancies or inefficiencies, and simplify the overall structure would greatly enhance their interpretability and facilitate understanding. 
+% \end{itemize}
+
+% By pursuing these extensions, future research can overcome current limitations and unlock the full potential of Learning Transformer Programs for building truly interpretable and trustworthy machine learning models.
